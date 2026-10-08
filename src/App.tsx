@@ -1,7 +1,10 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Component, useEffect, type ReactNode } from "react";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { FinancesPage } from "@/features/finances/FinancesPage";
+import { runRecurring } from "@/features/finances/service";
 import { HabitsPage } from "@/features/habits/HabitsPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { TasksPage } from "@/features/tasks/TasksPage";
@@ -11,9 +14,10 @@ const PAGES: Record<Route, () => ReactNode> = {
   dashboard: () => <DashboardPage />,
   tasks: () => <TasksPage />,
   habits: () => <HabitsPage />,
+  finances: () => <FinancesPage />,
   settings: () => <SettingsPage />,
 };
-const NUMBER_ROUTES: Route[] = ["dashboard", "tasks", "habits"];
+const NUMBER_ROUTES: Route[] = ["dashboard", "tasks", "habits", "finances"];
 
 function useShortcuts() {
   useEffect(() => {
@@ -57,6 +61,9 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
 
 export default function App() {
   useShortcuts();
+  const qc = useQueryClient();
+  // Gera lançamentos recorrentes devidos (idempotente) ao abrir o app.
+  useEffect(() => { runRecurring().then(() => qc.invalidateQueries()).catch((e) => console.error("recorrentes:", e)); }, [qc]);
   const route = useUi((s) => s.route);
   return (
     <div className="flex h-full">

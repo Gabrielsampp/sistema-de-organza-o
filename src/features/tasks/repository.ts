@@ -1,22 +1,35 @@
 import { execute, nowUTC, select } from "@/db/client";
 import { ulid } from "@/lib/ids";
-import type { Subtask, Task, TaskStatus } from "./domain";
+import type { Recurrence, Subtask, Task, TaskStatus } from "./domain";
 
-const TASK_COLS = "id,title,description,priority,status,due_date,due_time,completed_at,position";
+const TASK_COLS = "id,title,description,priority,status,due_date,due_time,completed_at,position,category,recurrence,series_id";
 
 export const listTasks = () =>
   select<Task>(`SELECT ${TASK_COLS} FROM tasks WHERE deleted_at IS NULL ORDER BY created_at DESC`);
 
-export async function createTask(input: { title: string; due_date?: string | null; priority?: number }): Promise<string> {
+export interface NewTask {
+  title: string; description?: string; priority?: number; due_date?: string | null; due_time?: string | null;
+  category?: string | null; recurrence?: Recurrence | null; series_id?: string | null;
+}
+
+export async function createTask(input: NewTask): Promise<string> {
   const id = ulid();
-  const now = nowUTC();
   await execute(
-    `INSERT INTO tasks (id,title,priority,due_date,position,created_at,updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$6)`,
-    [id, input.title.trim(), input.priority ?? 1, input.due_date ?? null, Date.now(), now],
+    `INSERT INTO tasks (id,title,description,priority,due_date,due_time,category,recurrence,series_id,position,created_at,updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$11)`,
+    [id, input.title.trim(), input.description ?? "", input.priority ?? 1, input.due_date ?? null, input.due_time ?? null,
+     input.category?.trim() || null, input.recurrence ?? null, input.series_id ?? null, Date.now(), nowUTC()],
   );
   return id;
 }
+
+/** Cria a próxima ocorrência; o índice único (series_id, due_date) + OR IGNORE evita duplicar. */
+export const insertNextOccurrence = (t: Task, nextDue: string) =>
+  execute(
+    `INSERT OR IGNORE INTO tasks (id,title,description,priority,due_date,due_time,category,recurrence,series_id,position,created_at,updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$11)`,
+    [ulid(), t.title, t.description, t.priority, nextDue, t.due_time, t.category, t.recurrence, t.series_id ?? t.id, Date.now(), nowUTC()],
+  );
 
 export interface TaskPatch {
   title?: string;
@@ -25,9 +38,12 @@ export interface TaskPatch {
   status?: TaskStatus;
   due_date?: string | null;
   due_time?: string | null;
+  category?: string | null;
+  recurrence?: Recurrence | null;
+  series_id?: string | null;
 }
 
-const PATCHABLE = new Set(["title", "description", "priority", "status", "due_date", "due_time"]);
+const PATCHABLE = new Set(["title", "description", "priority", "status", "due_date", "due_time", "category", "recurrence", "series_id"]);
 
 /** Única query de UPDATE: colunas vêm de uma allowlist, valores sempre parametrizados. */
 export async function updateTask(id: string, patch: TaskPatch): Promise<void> {

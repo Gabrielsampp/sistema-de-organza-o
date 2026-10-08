@@ -2,12 +2,20 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 
 pub fn run() {
     // Novas migrations: adicione um item com version incremental. NUNCA edite uma já aplicada.
-    let migrations = vec![Migration {
-        version: 1,
-        description: "core",
-        sql: include_str!("../migrations/0001_core.sql"),
-        kind: MigrationKind::Up,
-    }];
+    let migrations = vec![
+        Migration {
+            version: 1,
+            description: "core",
+            sql: include_str!("../migrations/0001_core.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "finance_and_more",
+            sql: include_str!("../migrations/0002_finance_and_more.sql"),
+            kind: MigrationKind::Up,
+        },
+    ];
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())

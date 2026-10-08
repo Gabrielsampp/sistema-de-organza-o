@@ -6,6 +6,8 @@ export interface Habit {
   description: string;
   weekdays_mask: number; // bit0 = domingo .. bit6 = sábado
   start_date: string;
+  category: string | null;
+  time_of_day: string | null;
 }
 
 export const ALL_DAYS = 127;
@@ -71,4 +73,13 @@ export function rateInRange(done: ReadonlySet<string>, mask: number, startDate: 
     if (done.has(d)) hit++;
   }
   return scheduled === 0 ? null : Math.round((hit / scheduled) * 100);
+}
+
+/** % de hábitos agendados concluídos por dia ("estou mantendo meus hábitos?"). null = nenhum agendado. */
+export function dailyHabitRate(habits: readonly Habit[], doneByHabit: ReadonlyMap<string, ReadonlySet<string>>, days: readonly string[]): (number | null)[] {
+  return days.map((d) => {
+    const sched = habits.filter((h) => h.start_date <= d && isScheduled(h.weekdays_mask, d));
+    if (sched.length === 0) return null;
+    return Math.round((sched.filter((h) => doneByHabit.get(h.id)?.has(d)).length / sched.length) * 100);
+  });
 }

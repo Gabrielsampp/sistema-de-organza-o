@@ -1,4 +1,4 @@
-import { CheckSquare, Flame, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Settings, type LucideIcon } from "lucide-react";
+import { CheckSquare, Flame, LayoutDashboard, Wallet, PanelLeftClose, PanelLeftOpen, Settings, type LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getProfileName } from "@/features/settings/repository";
 import { useUi, type Route } from "@/stores/ui";
@@ -8,6 +8,7 @@ const MAIN: { route: Route; label: string; icon: LucideIcon; key: string }[] = [
   { route: "dashboard", label: "Início", icon: LayoutDashboard, key: "Ctrl+1" },
   { route: "tasks", label: "Tarefas", icon: CheckSquare, key: "Ctrl+2" },
   { route: "habits", label: "Hábitos", icon: Flame, key: "Ctrl+3" },
+  { route: "finances", label: "Finanças", icon: Wallet, key: "Ctrl+4" },
 ];
 
 function NavItem({ item, collapsed }: { item: { route: Route; label: string; icon: LucideIcon; key?: string }; collapsed: boolean }) {

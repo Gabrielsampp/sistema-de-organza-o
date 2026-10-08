@@ -49,7 +49,7 @@ export function SettingsPage() {
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-fg2">
             <dt className="text-fg">Ctrl+K</dt><dd>Busca global</dd>
             <dt className="text-fg">Ctrl+N</dt><dd>Novo item na tela atual</dd>
-            <dt className="text-fg">Ctrl+1 / 2 / 3</dt><dd>Início / Tarefas / Hábitos</dd>
+            <dt className="text-fg">Ctrl+1 … 4</dt><dd>Início / Tarefas / Hábitos / Finanças</dd>
             <dt className="text-fg">Ctrl+B</dt><dd>Recolher sidebar</dd>
             <dt className="text-fg">Esc</dt><dd>Fechar painel</dd>
           </dl>

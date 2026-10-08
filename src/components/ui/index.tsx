@@ -1,4 +1,5 @@
 import { Check, X } from "lucide-react";
+import type React from "react";
 import { useEffect, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes, forwardRef } from "react";
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(" ");
@@ -159,5 +160,44 @@ export function ProgressRing({ pct, size = 112 }: { pct: number; size?: number }
         style={{ transition: "stroke-dashoffset .4s" }}
       />
     </svg>
+  );
+}
+
+export const selectCls =
+  "h-8 w-full rounded-control border border-line-strong bg-base px-2 text-[13px] text-fg focus:border-accent";
+
+export function Select({ className, ...p }: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select {...p} className={cx(selectCls, className)} />;
+}
+
+/** Controle segmentado (ex.: Saída / Entrada / Transferência). */
+export function Segmented<T extends string>({ value, onChange, options }: {
+  value: T; onChange: (v: T) => void; options: { value: T; label: string; tone?: "accent" | "danger" }[];
+}) {
+  return (
+    <div className="flex gap-1 rounded-control bg-base p-1" role="radiogroup">
+      {options.map((o) => {
+        const on = o.value === value;
+        const tone = o.tone === "danger" ? "bg-danger/15 text-danger" : "bg-accent/15 text-accent";
+        return (
+          <button key={o.value} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.value)}
+            className={cx("h-7 flex-1 rounded-[5px] text-[12px] transition-colors", on ? tone : "text-muted hover:text-fg")}>
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function StatCard({ label, value, tone = "neutral", sub }: { label: string; value: string; tone?: "neutral" | "success" | "danger"; sub?: string }) {
+  const box = { neutral: "border-line bg-surface", success: "border-accent/25 bg-accent/[0.05]", danger: "border-danger/25 bg-danger/[0.05]" }[tone];
+  const txt = { neutral: "text-fg", success: "text-success", danger: "text-danger" }[tone];
+  return (
+    <div className={cx("rounded-card border p-5", box)}>
+      <div className={cx("tnum font-display text-[26px] font-bold", txt)}>{value}</div>
+      <div className="mt-1 text-[11px] uppercase tracking-wider text-muted">{label}</div>
+      {sub && <div className="mt-1 text-[11px] text-faint">{sub}</div>}
+    </div>
   );
 }

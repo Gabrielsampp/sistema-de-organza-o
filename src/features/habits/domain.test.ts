@@ -46,3 +46,12 @@ describe("rateInRange", () => {
     expect(rateInRange(new Set(), 127, "2026-10-20", "2026-10-01", "2026-10-08")).toBeNull();
   });
 });
+
+import { dailyHabitRate, type Habit } from "./domain";
+describe("dailyHabitRate", () => {
+  const h = (id: string, start = "2026-10-01"): Habit => ({ id, name: id, description: "", weekdays_mask: 127, start_date: start, category: null, time_of_day: null });
+  it("calcula por dia e retorna null sem hábitos agendados", () => {
+    const done = new Map([["a", new Set(["2026-10-07"])], ["b", new Set<string>()]]);
+    expect(dailyHabitRate([h("a"), h("b")], done, ["2026-10-07", "2026-09-30"])).toEqual([50, null]);
+  });
+});

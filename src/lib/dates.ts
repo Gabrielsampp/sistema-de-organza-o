@@ -39,3 +39,16 @@ export function formatShort(iso: string): string {
     .format(parseISODate(iso))
     .replace(".", "");
 }
+
+/** Soma meses mantendo o dia; se o dia não existir no mês destino, usa o último dia (31/01 + 1 → 28/02). */
+export function addMonths(iso: string, n: number): string {
+  const d = parseISODate(iso);
+  const day = d.getDate();
+  const target = new Date(d.getFullYear(), d.getMonth() + n, 1, 12);
+  const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  target.setDate(Math.min(day, last));
+  return toISODate(target);
+}
+
+/** Converte um instante UTC ISO para a data local 'YYYY-MM-DD'. */
+export const localDateOf = (utcIso: string): string => toISODate(new Date(utcIso));

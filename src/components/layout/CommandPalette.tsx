@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { CheckSquare, CornerDownLeft, Flame, Navigation } from "lucide-react";
+import { CheckSquare, CornerDownLeft, Flame, Navigation, Wallet } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Kbd } from "@/components/ui";
+import { listTransactions } from "@/features/finances/repository";
 import { listHabits } from "@/features/habits/repository";
 import { listTasks } from "@/features/tasks/repository";
 import { useUi, type Route } from "@/stores/ui";
@@ -27,6 +28,8 @@ export function CommandPalette() {
 
   const tasks = useQuery({ queryKey: ["tasks"], queryFn: listTasks, enabled: open });
   const habits = useQuery({ queryKey: ["habits"], queryFn: listHabits, enabled: open });
+  const txs = useQuery({ queryKey: ["txs"], queryFn: listTransactions, enabled: open });
+  const openTx = useUi((s) => s.openTx);
 
   useEffect(() => {
     if (open) {
@@ -38,14 +41,16 @@ export function CommandPalette() {
 
   const items = useMemo<Item[]>(() => {
     const go = (r: Route, label: string): Item => ({ id: `nav:${r}`, label, hint: "Ir para", icon: Navigation, run: () => navigate(r) });
-    const all: Item[] = [go("dashboard", "Início"), go("tasks", "Tarefas"), go("habits", "Hábitos"), go("settings", "Configurações")];
+    const all: Item[] = [go("dashboard", "Início"), go("tasks", "Tarefas"), go("habits", "Hábitos"), go("finances", "Finanças"), go("settings", "Configurações")];
     for (const t of tasks.data ?? [])
       all.push({ id: `t:${t.id}`, label: t.title, hint: "Tarefa", icon: CheckSquare, run: () => { navigate("tasks"); openTask(t.id); } });
     for (const h of habits.data ?? [])
       all.push({ id: `h:${h.id}`, label: h.name, hint: "Hábito", icon: Flame, run: () => navigate("habits") });
+    for (const t of txs.data ?? [])
+      if (t.description) all.push({ id: `x:${t.id}`, label: t.description, hint: "Transação", icon: Wallet, run: () => { navigate("finances"); openTx(t.id); } });
     const nq = norm(q.trim());
     return (nq ? all.filter((i) => norm(i.label).includes(nq)) : all.slice(0, 8)).slice(0, 12);
-  }, [q, tasks.data, habits.data, navigate, openTask]);
+  }, [q, tasks.data, habits.data, txs.data, navigate, openTask, openTx]);
 
   if (!open) return null;
   const choose = (i: Item | undefined) => {

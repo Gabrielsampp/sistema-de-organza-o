@@ -1,11 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Flame, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { EmptyState, Input, Kbd } from "@/components/ui";
-import { toISODate, todayISO } from "@/lib/dates";
+import { ChevronLeft, ChevronRight, Flame, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AreaTrend } from "@/components/charts";
+import { Button, Card, EmptyState, Label } from "@/components/ui";
+import { addDays, toISODate, todayISO } from "@/lib/dates";
 import { useUi } from "@/stores/ui";
-import { ALL_DAYS, WEEKDAY_SHORT, calcStreaks, isScheduled, rateInRange } from "./domain";
-import { createHabit, deleteHabit, listCompletions, listHabits, setCompletion } from "./repository";
+import { calcStreaks, dailyHabitRate, isScheduled, rateInRange } from "./domain";
+import { HabitPanel } from "./HabitPanel";
+import { listCompletions, listHabits, setCompletion } from "./repository";
 
 const monthLabel = (y: number, m: number) =>
   new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(new Date(y, m, 1, 12));
@@ -16,11 +18,9 @@ export function HabitsPage() {
   const today = todayISO();
   const now = new Date();
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() });
-  const [name, setName] = useState("");
-  const [mask, setMask] = useState(ALL_DAYS);
-  const addRef = useRef<HTMLInputElement>(null);
+  const openHabit = useUi((s) => s.openHabit);
   const tick = useUi((s) => s.quickAddTick);
-  useEffect(() => { if (tick > 0) addRef.current?.focus(); }, [tick]);
+  useEffect(() => { if (tick > 0) openHabit("new"); }, [tick, openHabit]);
 
   const habits = useQuery({ queryKey: ["habits"], queryFn: listHabits });
   const comps = useQuery({ queryKey: ["completions"], queryFn: listCompletions });
@@ -41,44 +41,37 @@ export function HabitsPage() {
   const first = days[0]!;
   const last = days[days.length - 1]!;
 
+  const last30 = useMemo(() => Array.from({ length: 30 }, (_, i) => addDays(today, i - 29)), [today]);
+  const trend = useMemo(() => {
+    const rates = dailyHabitRate(habits.data ?? [], byHabit, last30);
+    return last30.map((d, i) => ({ day: d.slice(8), rate: rates[i] ?? 0 }));
+  }, [habits.data, byHabit, last30]);
+
   const shift = (delta: number) => setYm(({ y, m }) => { const d = new Date(y, m + delta, 1); return { y: d.getFullYear(), m: d.getMonth() }; });
 
-  const add = useMutation({
-    mutationFn: () => createHabit({ name, weekdays_mask: mask, start_date: today }),
-    onSuccess: () => { setName(""); setMask(ALL_DAYS); qc.invalidateQueries(); },
-  });
   const toggle = useMutation({
     mutationFn: ({ id, date, done }: { id: string; date: string; done: boolean }) => setCompletion(id, date, done),
     onSuccess: () => qc.invalidateQueries(),
   });
-  const del = useMutation({ mutationFn: (id: string) => deleteHabit(id), onSuccess: () => qc.invalidateQueries() });
 
   return (
     <div className="px-10 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-display text-[28px] font-bold uppercase tracking-wide">Hábitos</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button aria-label="Mês anterior" onClick={() => shift(-1)} className="rounded p-1.5 text-muted hover:bg-elevated hover:text-fg"><ChevronLeft size={16} /></button>
           <span className="w-40 text-center font-display text-[14px] font-semibold uppercase tracking-wide">{monthLabel(ym.y, ym.m)}</span>
           <button aria-label="Próximo mês" onClick={() => shift(1)} className="rounded p-1.5 text-muted hover:bg-elevated hover:text-fg"><ChevronRight size={16} /></button>
+          <Button variant="primary" onClick={() => openHabit("new")}><Plus size={14} /> Novo hábito</Button>
         </div>
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); if (name.trim()) add.mutate(); }} className="mb-6 flex max-w-[760px] items-center gap-3">
-        <Input ref={addRef} value={name} onChange={(e) => setName(e.target.value)} placeholder="Novo hábito — Enter para adicionar" className="h-10 text-[14px]" />
-        <div className="flex gap-1" role="group" aria-label="Dias da semana">
-          {WEEKDAY_SHORT.map((l, i) => {
-            const on = (mask & (1 << i)) !== 0;
-            return (
-              <button type="button" key={i} aria-pressed={on} onClick={() => setMask((m) => (m ^ (1 << i)) || m)}
-                className={`size-8 rounded-control text-[12px] ${on ? "bg-accent/15 text-accent" : "text-muted hover:bg-elevated"}`}>
-                {l}
-              </button>
-            );
-          })}
-        </div>
-        <Kbd>Ctrl+N</Kbd>
-      </form>
+      {(habits.data?.length ?? 0) > 0 && (
+        <Card className="mb-6">
+          <Label>Taxa de conclusão — últimos 30 dias</Label>
+          <AreaTrend data={trend} xKey="day" height={160} format={(v) => `${v}%`} series={[{ key: "rate", name: "Conclusão", color: "#2cc556" }]} />
+        </Card>
+      )}
 
       <div className="overflow-x-auto rounded-card border border-line bg-surface">
         <table className="w-full border-collapse">
@@ -99,12 +92,10 @@ export function HabitsPage() {
                 <tr key={h.id} className="group border-t border-line">
                   <td className="sticky left-0 z-10 bg-surface px-5 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="flex-1 truncate text-[13px] font-medium">{h.name}</span>
+                      <button onClick={() => openHabit(h.id)} className="flex-1 truncate text-left text-[13px] font-medium hover:text-accent">{h.name}</button>
                       <span className="tnum flex items-center gap-1 text-[12px] text-warning" title="Sequência atual"><Flame size={12} />{s.current}</span>
-                      <button aria-label={`Excluir ${h.name}`} onClick={() => { if (confirm(`Excluir "${h.name}"?`)) del.mutate(h.id); }}
-                        className="text-faint opacity-0 hover:text-danger group-hover:opacity-100"><Trash2 size={13} /></button>
                     </div>
-                    <div className={`tnum text-[11px] font-medium ${rateTone(rate)}`}>{rate === null ? "—" : `${rate}%`} <span className="text-faint">· melhor {s.best}</span></div>
+                    <div className={`tnum text-[11px] font-medium ${rateTone(rate)}`}>{rate === null ? "—" : `${rate}%`} <span className="text-faint">· melhor {s.best}{h.time_of_day ? ` · ${h.time_of_day}` : ""}{h.category ? ` · ${h.category}` : ""}</span></div>
                   </td>
                   {days.map((d) => {
                     const sched = isScheduled(h.weekdays_mask, d);
@@ -130,8 +121,9 @@ export function HabitsPage() {
             })}
           </tbody>
         </table>
-        {habits.data?.length === 0 && <EmptyState title="Nenhum hábito ainda" hint="Crie o primeiro acima e marque todo dia." />}
+        {habits.data?.length === 0 && <EmptyState title="Nenhum hábito ainda" hint="Clique em “Novo hábito” para criar sua rotina." />}
       </div>
+      <HabitPanel habits={habits.data ?? []} />
     </div>
   );
 }
