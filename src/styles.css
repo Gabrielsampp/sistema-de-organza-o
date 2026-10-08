@@ -1,0 +1,39 @@
+@import "@fontsource-variable/inter";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+  --color-base: #0a0b0d;
+  --color-surface: #101216;
+  --color-elevated: #161a20;
+  --color-line: #1f2329;
+  --color-line-strong: #2a2f37;
+  --color-fg: #e8eaed;
+  --color-fg2: #9aa1ab;
+  --color-muted: #7a828e;
+  --color-faint: #565d68;
+  --color-accent: #4c8dff;
+  --color-accent-hover: #6ba1ff;
+  --color-success: #34c77b;
+  --color-danger: #f0584f;
+  --color-warning: #f2b53d;
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-modal: 14px;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-base);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+input, textarea { user-select: text; }
+.tnum { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 8px; border: 2px solid var(--color-base); }
