@@ -50,7 +50,7 @@ export function TasksPage() {
 
   return (
     <div className="mx-auto max-w-[920px] px-10 py-8">
-      <h1 className="mb-6 text-[28px] font-semibold tracking-tight">Tarefas</h1>
+      <h1 className="mb-6 font-display text-[28px] font-bold uppercase tracking-wide">Tarefas</h1>
 
       <form
         onSubmit={(e) => { e.preventDefault(); if (title.trim()) add.mutate(); }}
@@ -66,7 +66,7 @@ export function TasksPage() {
             <button
               key={v.id}
               onClick={() => setView(v.id)}
-              className={`flex h-8 items-center gap-2 rounded-control px-3 text-[13px] ${view === v.id ? "bg-accent/12 text-accent" : "text-fg2 hover:bg-elevated"}`}
+              className={`flex h-8 items-center gap-2 rounded-control px-3 text-[13px] ${view === v.id ? "bg-accent/15 text-accent" : "text-fg2 hover:bg-elevated"}`}
             >
               {v.label}
               <span className="tnum text-[11px] text-muted">{counts[v.id]}</span>
@@ -81,7 +81,7 @@ export function TasksPage() {
       <ul className="divide-y divide-line rounded-card border border-line bg-surface">
         {visible.map((t) => (
           <li key={t.id} className="flex items-center gap-3 px-4 py-3 hover:bg-elevated/60">
-            <Checkbox checked={t.status === "done"} label={`Concluir ${t.title}`} onChange={(v) => toggle.mutate({ id: t.id, done: v })} />
+            <Checkbox round checked={t.status === "done"} label={`Concluir ${t.title}`} onChange={(v) => toggle.mutate({ id: t.id, done: v })} />
             <button onClick={() => openTask(t.id)} className="flex flex-1 items-center gap-3 text-left">
               <span className={`flex-1 truncate ${t.status === "done" ? "text-muted line-through" : ""}`}>{t.title}</span>
               {t.status === "in_progress" && <Badge tone="accent">Em andamento</Badge>}

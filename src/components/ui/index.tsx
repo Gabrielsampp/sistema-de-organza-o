@@ -10,7 +10,7 @@ export function Button({
   ...p
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: BtnVariant }) {
   const v = {
-    primary: "bg-accent text-base font-medium hover:bg-accent-hover",
+    primary: "bg-accent text-white font-medium hover:bg-accent-hover",
     ghost: "bg-transparent text-fg2 hover:bg-elevated hover:text-fg border border-line-strong",
     danger: "bg-transparent text-danger hover:bg-danger/10 border border-danger/40",
   }[variant];
@@ -46,7 +46,7 @@ export function Card({ className, children }: { className?: string; children: Re
 }
 
 export function Label({ children }: { children: ReactNode }) {
-  return <div className="mb-3 text-[11px] font-medium uppercase tracking-wider text-muted">{children}</div>;
+  return <div className="mb-3 font-display text-[13px] font-semibold uppercase tracking-wide text-fg">{children}</div>;
 }
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -78,17 +78,19 @@ export function Badge({ tone = "neutral", children }: { tone?: "neutral" | "acce
   return <span className={cx("inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium", t)}>{children}</span>;
 }
 
-export function Checkbox({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+export function Checkbox({ checked, onChange, label, round = false, disabled = false }: { checked: boolean; onChange: (v: boolean) => void; label: string; round?: boolean; disabled?: boolean }) {
   return (
     <button
       type="button"
       role="checkbox"
       aria-checked={checked}
       aria-label={label}
+      disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cx(
-        "flex size-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors",
-        checked ? "border-accent bg-accent text-base" : "border-line-strong hover:border-accent",
+        "flex size-[18px] shrink-0 items-center justify-center border transition-colors disabled:cursor-default",
+        round ? "rounded-full" : "rounded-[5px]",
+        checked ? "border-accent bg-accent text-white" : "border-line-strong enabled:hover:border-accent",
       )}
     >
       {checked && <Check size={12} strokeWidth={3} />}

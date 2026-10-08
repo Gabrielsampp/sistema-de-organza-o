@@ -60,3 +60,15 @@ export function completionRate(done: ReadonlySet<string>, mask: number, startDat
   }
   return scheduled === 0 ? null : Math.round((hit / scheduled) * 100);
 }
+
+/** % de dias agendados concluídos entre `from` e `to` (inclusive), ignorando dias antes do início. */
+export function rateInRange(done: ReadonlySet<string>, mask: number, startDate: string, from: string, to: string): number | null {
+  let scheduled = 0;
+  let hit = 0;
+  for (let d = from < startDate ? startDate : from; d <= to; d = addDays(d, 1)) {
+    if (!isScheduled(mask, d)) continue;
+    scheduled++;
+    if (done.has(d)) hit++;
+  }
+  return scheduled === 0 ? null : Math.round((hit / scheduled) * 100);
+}

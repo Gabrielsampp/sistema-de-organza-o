@@ -36,3 +36,13 @@ describe("completionRate", () => {
     expect(completionRate(set(), 127, "2026-10-20", "2026-10-08")).toBeNull();
   });
 });
+
+import { rateInRange } from "./domain";
+describe("rateInRange", () => {
+  it("respeita início e intervalo", () => {
+    expect(rateInRange(new Set(["2026-10-06"]), 127, "2026-10-05", "2026-10-01", "2026-10-08")).toBe(25); // dias 05..08, 1 concluído
+  });
+  it("null sem dias", () => {
+    expect(rateInRange(new Set(), 127, "2026-10-20", "2026-10-01", "2026-10-08")).toBeNull();
+  });
+});

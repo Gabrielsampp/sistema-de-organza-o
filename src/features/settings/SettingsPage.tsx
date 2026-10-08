@@ -26,7 +26,7 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-[680px] px-10 py-8">
-      <h1 className="mb-6 text-[28px] font-semibold tracking-tight">Configurações</h1>
+      <h1 className="mb-6 font-display text-[28px] font-bold uppercase tracking-wide">Configurações</h1>
       <div className="space-y-4">
         <Card>
           <Label>Perfil</Label>

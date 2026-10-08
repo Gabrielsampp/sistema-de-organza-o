@@ -1,4 +1,6 @@
 import { CheckSquare, Flame, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Settings, type LucideIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getProfileName } from "@/features/settings/repository";
 import { useUi, type Route } from "@/stores/ui";
 
 // Só módulos IMPLEMENTADOS aparecem aqui. Módulo novo = um item neste array.
@@ -18,7 +20,7 @@ function NavItem({ item, collapsed }: { item: { route: Route; label: string; ico
       onClick={() => navigate(item.route)}
       aria-current={active ? "page" : undefined}
       className={`group relative flex h-9 w-full items-center gap-3 rounded-control px-3 text-[13px] transition-colors ${
-        active ? "bg-accent/12 text-accent" : "text-fg2 hover:bg-elevated hover:text-fg"
+        active ? "bg-brand/10 text-brand before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded before:bg-brand" : "text-fg2 hover:bg-elevated hover:text-fg"
       }`}
     >
       <Icon size={17} className="shrink-0" />
@@ -36,12 +38,19 @@ function NavItem({ item, collapsed }: { item: { route: Route; label: string; ico
 export function Sidebar() {
   const collapsed = useUi((s) => s.sidebarCollapsed);
   const toggle = useUi((s) => s.toggleSidebar);
+  const name = useQuery({ queryKey: ["profile-name"], queryFn: getProfileName });
   return (
     <nav className={`flex h-full shrink-0 flex-col border-r border-line bg-base p-3 transition-[width] duration-200 ${collapsed ? "w-16" : "w-[232px]"}`}>
-      <div className="mb-6 flex h-9 items-center gap-2 px-2">
-        <div className="size-5 shrink-0 rounded-[6px] bg-accent" />
-        {!collapsed && <span className="text-[14px] font-semibold tracking-wide">ATLAS</span>}
+      <div className="mb-2 flex h-9 items-center gap-2 px-2">
+        <div className="size-5 shrink-0 rounded-[5px] bg-accent" />
+        {!collapsed && <span className="font-display text-[18px] font-bold tracking-wide">ATLAS</span>}
       </div>
+      {!collapsed && (
+        <div className="mb-4 border-b border-line px-2 pb-4">
+          <div className="text-[10px] uppercase tracking-wider text-muted">Executor</div>
+          <div className="font-display text-[15px] font-semibold uppercase">{name.data || "Defina seu nome"}</div>
+        </div>
+      )}
       <div className="flex flex-1 flex-col gap-1">
         {MAIN.map((i) => (
           <NavItem key={i.route} item={i} collapsed={collapsed} />
